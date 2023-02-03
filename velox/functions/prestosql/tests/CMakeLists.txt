@@ -32,6 +32,7 @@ add_executable(
   ArraySortTest.cpp
   ArraysOverlapTest.cpp
   ArraySumTest.cpp
+  SimdJsonExtractScalarTest.cpp
   BitwiseTest.cpp
   CardinalityTest.cpp
   CeilFloorTest.cpp

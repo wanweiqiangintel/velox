@@ -19,9 +19,9 @@
 #include "velox/functions/prestosql/types/JsonType.h"
 #include "velox/functions/Macros.h"
 #include "velox/functions/UDFOutputString.h"
-//#include "velox/functions/prestosql/json/ADBJsonExtractor.h"
+#include "velox/functions/prestosql/json/SimdJsonExtractor.h"
 #include "velox/functions/prestosql/types/JsonType.h"
-//#include "velox/functions/prestosql/json/simdjson.h"
+#include "simdjson.h"
 #include <iostream>
 #include <sys/time.h>
 
@@ -34,7 +34,7 @@ struct SIMDJsonArrayContainsFunction {
   template <typename TInput>
   FOLLY_ALWAYS_INLINE bool
   call(bool& result, const arg_type<Json>& json, const TInput& value) {
-/*    
+   
     std::string jsonData = json;
     simdjson::ondemand::parser parser;
     simdjson::ondemand::document jsonObj;
@@ -89,8 +89,8 @@ struct SIMDJsonArrayContainsFunction {
       }
     }
     return true;
-*/
-    return false;
+
+    //return false;
   }
 };
 
@@ -101,7 +101,7 @@ struct SIMDJsonParseFunction {
   FOLLY_ALWAYS_INLINE bool call(
       out_type<Varchar>& result,
       const arg_type<Varchar>& json) {
-/*
+
     std::string jsonData = json;
 
     simdjson::dom::parser parser;
@@ -121,8 +121,6 @@ struct SIMDJsonParseFunction {
     }
 
     return false;
-*/
-    return false;
   }
 };
 
@@ -134,12 +132,12 @@ struct SIMDJsonExtractScalarFunction {
       out_type<Varchar>& result,
       const arg_type<Varchar>& json,
       const arg_type<Varchar>& jsonPath) {
-/*    
+
     std::string jsonData = json;
     std::string jsonPathStr = jsonPath;
 
     //ADBjsonExtractString is ondemand mode
-    auto extractResult = ADBjsonExtractScalar(jsonData, jsonPathStr);
+    auto extractResult = SimdJsonExtractScalar(jsonData, jsonPathStr);
 
     if (extractResult.has_value()) {
       UDFOutputString::assign(result, extractResult.value());
@@ -147,8 +145,6 @@ struct SIMDJsonExtractScalarFunction {
     } else {
       return false;
     }
-    return false;
-*/
     return false;
   }
 };
