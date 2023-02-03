@@ -88,6 +88,52 @@ std::string makeErrorMessage(
       input.toString(row));
 }
 
+template <typename TInput, typename TOutput,
+          typename = typename std::enable_if_t<std::is_floating_point_v<TInput>>>
+void applyCastNumberToDecimal(
+    const SelectivityVector& rows,
+    const BaseVector& input,
+    exec::EvalCtx& context,
+    const TypePtr& fromType,
+    const TypePtr& toType,
+    VectorPtr castResult,
+    const bool nullOnFailure) {
+  auto sourceVector = input.as<SimpleVector<TInput>>();
+  auto castResultRawBuffer = castResult->asUnchecked<FlatVector<TOutput>>()->mutableRawValues();
+
+  const auto & toPrecisionScale = getDecimalPrecisionScale(*toType);
+  context.applyToSelectedNoThrow(rows, [&](vector_size_t row) {
+    const auto & sourceValue = sourceVector->valueAt(row);
+    if constexpr (std::is_floating_point_v<TInput>) {
+      if (!std::isfinite(sourceValue)) {
+        VELOX_USER_FAIL("Cannot convert infinity or NaN to decimal")
+      }
+
+      auto toValue = sourceValue * static_cast<TInput>(DecimalUtil::kPowersOfTen[toPrecisionScale.second]);
+
+      if constexpr (std::is_same_v<TOutput, UnscaledShortDecimal>) {
+        if (toValue <= static_cast<TInput>(std::numeric_limits<int64_t>::min()) ||
+            toValue >= static_cast<TInput>(std::numeric_limits<int64_t>::max())) {
+          VELOX_USER_FAIL("Float is out of Decimal range.")
+        }
+        castResultRawBuffer[row] = UnscaledShortDecimal(static_cast<int64_t>(toValue));
+      } else {
+        if (toValue <= static_cast<TInput>(std::numeric_limits<int128_t>::min()) ||
+            toValue >= static_cast<TInput>(std::numeric_limits<int128_t>::max())) {
+          VELOX_USER_FAIL("Float is out of Decimal range.")
+        }
+        castResultRawBuffer[row] = UnscaledLongDecimal(static_cast<int128_t>(toValue));
+      }
+    } else {
+      // todo: support other type.
+      VELOX_UNSUPPORTED(
+          "Cast from {} to {} is not supported",
+          fromType->toString(),
+          toType->toString())
+    }
+  });
+}
+
 template <typename TInput, typename TOutput>
 void applyDecimalCastKernel(
     const SelectivityVector& rows,
@@ -502,6 +548,16 @@ VectorPtr CastExpr::applyDecimal(
   context.ensureWritable(rows, toType, castResult);
   (*castResult).clearNulls(rows);
   switch (fromType->kind()) {
+    case TypeKind::DOUBLE: {
+        if (toType->kind() == TypeKind::SHORT_DECIMAL) {
+          applyCastNumberToDecimal<double, UnscaledShortDecimal>(
+              rows, input, context, fromType, toType, castResult, nullOnFailure_);
+        } else {
+          applyCastNumberToDecimal<double, UnscaledLongDecimal>(
+              rows, input, context, fromType, toType, castResult, nullOnFailure_);
+        }
+        break;
+    }
     case TypeKind::SHORT_DECIMAL: {
       if (toType->kind() == TypeKind::SHORT_DECIMAL) {
         applyDecimalCastKernel<UnscaledShortDecimal, UnscaledShortDecimal>(
