@@ -89,8 +89,6 @@ struct SIMDJsonArrayContainsFunction {
       }
     }
     return true;
-
-    //return false;
   }
 };
 
@@ -136,7 +134,6 @@ struct SIMDJsonExtractScalarFunction {
     std::string jsonData = json;
     std::string jsonPathStr = jsonPath;
 
-    //ADBjsonExtractString is ondemand mode
     auto extractResult = SimdJsonExtractScalar(jsonData, jsonPathStr);
 
     if (extractResult.has_value()) {
@@ -276,7 +273,6 @@ struct SIMDJsonKeysFunctionWithJsonPath {
     std::string jsonData = json;
     std::string jsonPathStr = jsonPath;
 
-    //ADBjsonExtractString is FULL parse mode
     auto extractResult = ADBjsonKeysWithJsonPath(jsonData, jsonPathStr);
 
     if (extractResult.has_value()) {
