@@ -19,23 +19,17 @@
 #include <cctype>
 #include <unordered_map>
 #include <vector>
-#include <re2/re2.h>
-#include <iostream>
-#include <optional>
 
 #include "boost/algorithm/string/trim.hpp"
 #include "folly/String.h"
 #include "folly/json.h"
+#include "simdjson.h"
 #include "velox/common/base/Exceptions.h"
 #include "velox/functions/prestosql/json/JsonPathTokenizer.h"
-#include "simdjson.h"
 
 namespace facebook::velox::functions {
 
 namespace {
-const re2::RE2 SIMPLE_JSONPATH_PATTERN(R"(^([^\"\[\]]*)(?:\[([0-9]+|\*)\])?)", re2::RE2::Quiet);
-
-using JsonVector = std::vector<const simdjson::dom::object>;
 
 class SimdJsonExtractor {
  public:
