@@ -55,7 +55,7 @@ struct SIMDJsonArrayContainsFunction {
 
     result = false;
     try{
-      for (auto v : jsonObj) {
+      for (auto &&v : jsonObj) {
         if constexpr (std::is_same_v<TInput, bool>) {
           if (v.type() == simdjson::ondemand::json_type::boolean && v.get_bool() == value) {
             result = true;
@@ -198,7 +198,7 @@ struct SIMDJsonArrayLengthFunction {
 
     result = 0;
     try{
-      for (auto v : jsonObj) {
+      for (auto &&v : jsonObj) {
         result++;
       }
       return true;
@@ -241,7 +241,7 @@ struct SIMDJsonKeysFunction {
     int count = 0;
     int objCnt = jsonObj.count_fields();
     try{
-      for (auto field : jsonObj.get_object()) {
+      for (auto &&field : jsonObj.get_object()) {
         std::string_view tmp = field.unescaped_key();
         rlt += "\""+std::string(tmp)+"\"";
         if(++count != objCnt) {
