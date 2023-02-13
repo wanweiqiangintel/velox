@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "simdjson.h"
 #include "velox/functions/Macros.h"
 #include "velox/functions/UDFOutputString.h"
 #include "velox/functions/prestosql/json/JsonExtractor.h"
-#include "velox/functions/prestosql/types/JsonType.h"
-#include "velox/functions/Macros.h"
-#include "velox/functions/UDFOutputString.h"
 #include "velox/functions/prestosql/json/SimdJsonExtractor.h"
 #include "velox/functions/prestosql/types/JsonType.h"
-#include "simdjson.h"
-#include <iostream>
-#include <sys/time.h>
 
 namespace facebook::velox::functions {
 
