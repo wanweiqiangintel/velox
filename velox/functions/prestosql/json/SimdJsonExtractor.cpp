@@ -243,7 +243,7 @@ std::optional<std::string> SimdJsonExtractor::extractFromArray(
     std::optional<std::string> rlt_tmp;
     std::string rlt = "[";
     int ii = 0;
-    for(auto a:arr ) {
+    for(auto &&a:arr ) {
       ii++;
       if(a.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::dom::element_type::OBJECT) {
         rlt_tmp = extractFromObject(path_index+1, a);
@@ -356,7 +356,7 @@ std::optional<std::string> SimdJsonExtractor::extractKeysOndemand(
     int objCnt = rlt_value.count_fields();
     std::string rlt = "[";
     int count = 0;
-    for (auto field : rlt_value.get_object()) {
+    for (auto &&field : rlt_value.get_object()) {
       std::string_view tmp = field.unescaped_key();
       rlt += "\""+std::string(tmp)+"\"";
       if(++count != objCnt) {
