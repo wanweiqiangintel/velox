@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "simdjson.h"
 #include "velox/functions/Macros.h"
 #include "velox/functions/UDFOutputString.h"
 #include "velox/functions/prestosql/json/JsonExtractor.h"
-#include "velox/functions/prestosql/types/JsonType.h"
-#include "velox/functions/Macros.h"
-#include "velox/functions/UDFOutputString.h"
 #include "velox/functions/prestosql/json/SimdJsonExtractor.h"
 #include "velox/functions/prestosql/types/JsonType.h"
-#include "simdjson.h"
-#include <iostream>
-#include <sys/time.h>
 
 namespace facebook::velox::functions {
 
@@ -55,7 +51,7 @@ struct SIMDJsonArrayContainsFunction {
 
     result = false;
     try{
-      for (auto v : jsonObj) {
+      for (auto &&v : jsonObj) {
         if constexpr (std::is_same_v<TInput, bool>) {
           if (v.type() == simdjson::ondemand::json_type::boolean && v.get_bool() == value) {
             result = true;
@@ -153,7 +149,6 @@ struct SIMDJsonValidFunction {
   FOLLY_ALWAYS_INLINE void call(
       int64_t& result,
       const arg_type<Varchar>& json) {
-/*
     std::string jsonData = json;
     simdjson::dom::parser parser;
     simdjson::dom::element jsonObj;
@@ -168,7 +163,6 @@ struct SIMDJsonValidFunction {
       printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
       result = 0;
     }
-*/
   }
 };
 
@@ -177,7 +171,6 @@ struct SIMDJsonArrayLengthFunction {
   VELOX_DEFINE_FUNCTION_TYPES(T);
 
   FOLLY_ALWAYS_INLINE bool call(int64_t& result, const arg_type<Json>& json) {
-/*
     std::string jsonData = json;
     simdjson::ondemand::parser parser;
     simdjson::ondemand::document jsonObj;
@@ -198,7 +191,7 @@ struct SIMDJsonArrayLengthFunction {
 
     result = 0;
     try{
-      for (auto v : jsonObj) {
+      for (auto &&v : jsonObj) {
         result++;
       }
       return true;
@@ -206,8 +199,6 @@ struct SIMDJsonArrayLengthFunction {
     catch (simdjson::simdjson_error& e) {
       printf("error: Failed to count array length. error :%s\n",simdjson::error_message(e.error()));
     }
-    return false;
-*/
     return false;
   }
 };
@@ -219,7 +210,6 @@ struct SIMDJsonKeysFunction {
   FOLLY_ALWAYS_INLINE bool call(
       out_type<Varchar>& result,
       const arg_type<Json>& json) {
-/*
     std::string jsonData = json;
     simdjson::ondemand::parser parser;
     simdjson::ondemand::document jsonObj;
@@ -241,7 +231,7 @@ struct SIMDJsonKeysFunction {
     int count = 0;
     int objCnt = jsonObj.count_fields();
     try{
-      for (auto field : jsonObj.get_object()) {
+      for (auto &&field : jsonObj.get_object()) {
         std::string_view tmp = field.unescaped_key();
         rlt += "\""+std::string(tmp)+"\"";
         if(++count != objCnt) {
@@ -256,34 +246,6 @@ struct SIMDJsonKeysFunction {
       printf("error: Failed to find json key. error :%s\n",simdjson::error_message(e.error()));
     }
     return false;
-*/
-    return false;
-  }
-};
-
-template <typename T>
-struct SIMDJsonKeysFunctionWithJsonPath {
-  VELOX_DEFINE_FUNCTION_TYPES(T);
-
-  FOLLY_ALWAYS_INLINE bool call(
-      out_type<Varchar>& result,
-      const arg_type<Json>& json,
-      const arg_type<Varchar>& jsonPath) {
-/*
-    std::string jsonData = json;
-    std::string jsonPathStr = jsonPath;
-
-    auto extractResult = ADBjsonKeysWithJsonPath(jsonData, jsonPathStr);
-
-    if (extractResult.has_value()) {
-      UDFOutputString::assign(result, extractResult.value());
-      return true;
-    } else {
-      std::cout<<"ADBJsonKeysFunctionWithJsonPath rlt is: null"<<std::endl;
-      return false;
-    }
-*/
-    return false;
   }
 };
 
@@ -293,19 +255,6 @@ struct SIMDJsonLengthFunction {
 
   FOLLY_ALWAYS_INLINE bool call(int64_t& result, const arg_type<Json>& json) {
     // TODO: implement Json Length function with simdjson.
-    return false;
-  }
-};
-
-template <typename T>
-struct SIMDJsonLengthFunctionWithJsonPath {
-  VELOX_DEFINE_FUNCTION_TYPES(T);
-
-  FOLLY_ALWAYS_INLINE bool call(
-      int64_t& result,
-      const arg_type<Json>& json,
-      const arg_type<Varchar>& jsonPath) {
-    // TODO: implement JsonLengthFunctionWithJsonPath with simdjson.
     return false;
   }
 };

@@ -69,13 +69,9 @@ void registerSIMDJsonFunctions() {
   }
   {
     registerFunction<SIMDJsonKeysFunction, Varchar, Json>({"simd_json_keys"});
-    registerFunction<SIMDJsonKeysFunctionWithJsonPath, Varchar, Json, Varchar>(
-        {"simd_json_keys"});
   }
   {
     registerFunction<SIMDJsonLengthFunction, int64_t, Json>({"simd_json_length"});
-    registerFunction<SIMDJsonLengthFunctionWithJsonPath, int64_t, Json, Varchar>(
-        {"simd_json_length"});
   }
 }
 } // namespace facebook::velox::functions

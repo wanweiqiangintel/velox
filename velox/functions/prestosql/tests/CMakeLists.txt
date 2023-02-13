@@ -32,7 +32,6 @@ add_executable(
   ArraySortTest.cpp
   ArraysOverlapTest.cpp
   ArraySumTest.cpp
-  SimdJsonExtractScalarTest.cpp
   BitwiseTest.cpp
   CardinalityTest.cpp
   CeilFloorTest.cpp
@@ -56,6 +55,8 @@ add_executable(
   RegexpReplaceTest.cpp
   ReverseTest.cpp
   RoundTest.cpp
+  SimdJsonFunctionsTest.cpp
+  SimdJsonExtractScalarTest.cpp
   SliceTest.cpp
   SplitTest.cpp
   StringFunctionsTest.cpp
