@@ -112,8 +112,6 @@ struct SIMDJsonParseFunction {
       VELOX_USER_FAIL("Cannot convert '{}' to JSON", jsonData);
       return false;
     }
-
-    return false;
   }
 };
 
@@ -137,7 +135,6 @@ struct SIMDJsonExtractScalarFunction {
     } else {
       return false;
     }
-    return false;
   }
 };
 
