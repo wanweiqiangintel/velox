@@ -26,7 +26,7 @@ namespace facebook::velox::functions {
   FOLLY_ALWAYS_INLINE void 
   call(bool& result, const arg_type<Json>& json, const TInput& value) {
 
-    std::string jsonData = json;
+    std::string jsonData(json);
     simdjson::ondemand::parser parser;
     simdjson::ondemand::document jsonObj;
     simdjson::padded_string padded_json(jsonData.data(), jsonData.length());
@@ -106,7 +106,7 @@ struct SIMDJsonParseFunction {
       out_type<Varchar>& result,
       const arg_type<Varchar>& json) {
 
-    std::string jsonData = json;
+    std::string jsonData(json);
 
     simdjson::dom::parser parser;
     simdjson::dom::element jsonDoc;
@@ -135,7 +135,7 @@ struct SIMDJsonExtractScalarFunction {
       const arg_type<Varchar>& json,
       const arg_type<Varchar>& jsonPath) {
 
-    std::string jsonData = json;
+    std::string jsonData(json);
     std::string jsonPathStr = jsonPath;
 
     auto extractResult = SimdJsonExtractScalar(jsonData, jsonPathStr);
@@ -156,7 +156,7 @@ struct SIMDJsonValidFunction {
   FOLLY_ALWAYS_INLINE void call(
       int64_t& result,
       const arg_type<Varchar>& json) {
-    std::string jsonData = json;
+    std::string jsonData(json);
     simdjson::dom::parser parser;
     simdjson::dom::element jsonObj;
     simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
@@ -178,7 +178,7 @@ struct SIMDJsonArrayLengthFunction {
   VELOX_DEFINE_FUNCTION_TYPES(T);
 
   FOLLY_ALWAYS_INLINE bool call(int64_t& result, const arg_type<Json>& json) {
-    std::string jsonData = json;
+    std::string jsonData(json);
     simdjson::ondemand::parser parser;
     simdjson::ondemand::document jsonObj;
     simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
@@ -217,7 +217,7 @@ struct SIMDJsonKeysFunction {
   FOLLY_ALWAYS_INLINE bool call(
       out_type<Varchar>& result,
       const arg_type<Json>& json) {
-    std::string jsonData = json;
+    std::string jsonData(json);
     simdjson::ondemand::parser parser;
     simdjson::ondemand::document jsonObj;
     simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
