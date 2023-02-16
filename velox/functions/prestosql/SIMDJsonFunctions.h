@@ -22,68 +22,79 @@
 
 namespace facebook::velox::functions {
 
-template <typename T>
-struct SIMDJsonArrayContainsFunction {
-  VELOX_DEFINE_FUNCTION_TYPES(T);
-
   template <typename TInput>
-  FOLLY_ALWAYS_INLINE bool
+  FOLLY_ALWAYS_INLINE void 
   call(bool& result, const arg_type<Json>& json, const TInput& value) {
-   
+
     std::string jsonData = json;
     simdjson::ondemand::parser parser;
     simdjson::ondemand::document jsonObj;
-    simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
+    simdjson::padded_string padded_json(jsonData.data(), jsonData.length());
     std::string jsonpath = "";
-    
-    try {
-      jsonObj = parser.iterate(padded_json);
-    }
-    catch(simdjson::simdjson_error& e) {
-      printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
-      return false;
-    }
-    
-    if (jsonObj.type() != simdjson::ondemand::json_type::array) {
-      return false;
-    }
-
     result = false;
-    try{
-      for (auto &&v : jsonObj) {
-        if constexpr (std::is_same_v<TInput, bool>) {
-          if (v.type() == simdjson::ondemand::json_type::boolean && v.get_bool() == value) {
-            result = true;
-            break;
-          }
-        } else if constexpr (std::is_same_v<TInput, int64_t>) {
-          if (v.type() == simdjson::ondemand::json_type::number && ((v.get_number_type() == simdjson::ondemand::number_type::signed_integer && v.get_int64() == value) || (v.get_number_type() == simdjson::ondemand::number_type::unsigned_integer && v.get_uint64() == value))) {
-            result = true;
-            break;
-          }
-        } else if constexpr (std::is_same_v<TInput, double>) {
-          if (v.type() == simdjson::ondemand::json_type::number && v.get_number_type() == simdjson::ondemand::number_type::floating_point_number && v.get_double() == value) {
-            result = true;
-            break;
-          }
-        } else {
-          if (v.type() == simdjson::ondemand::json_type::string) {
-            std::string_view rlt = v.get_string();
-            std::string str_value = value.getString();
-            if(rlt.compare(str_value) == 0) {
+
+    do {
+      try {
+        jsonObj = parser.iterate(padded_json);
+      } catch (simdjson::simdjson_error& e) {
+        printf(
+            "error: Failed to parse json as document. error :%s\n",
+            simdjson::error_message(e.error()));
+        result = false;
+        break;
+      }
+
+      if (jsonObj.type() != simdjson::ondemand::json_type::array) {
+        result = false;
+        break;
+      }
+
+      try {
+        for (auto&& v : jsonObj) {
+          if constexpr (std::is_same_v<TInput, bool>) {
+            if (v.type() == simdjson::ondemand::json_type::boolean &&
+                v.get_bool() == value) {
               result = true;
               break;
             }
+          } else if constexpr (std::is_same_v<TInput, int64_t>) {
+            if (v.type() == simdjson::ondemand::json_type::number &&
+                ((v.get_number_type() ==
+                      simdjson::ondemand::number_type::signed_integer &&
+                  v.get_int64() == value) ||
+                 (v.get_number_type() ==
+                      simdjson::ondemand::number_type::unsigned_integer &&
+                  v.get_uint64() == value))) {
+              result = true;
+              break;
+            }
+          } else if constexpr (std::is_same_v<TInput, double>) {
+            if (v.type() == simdjson::ondemand::json_type::number &&
+                v.get_number_type() ==
+                    simdjson::ondemand::number_type::floating_point_number &&
+                v.get_double() == value) {
+              result = true;
+              break;
+            }
+          } else {
+            if (v.type() == simdjson::ondemand::json_type::string) {
+              std::string_view rlt = v.get_string();
+              std::string str_value = value.getString();
+              if (rlt.compare(str_value) == 0) {
+                result = true;
+                break;
+              }
+            }
           }
         }
+      } catch (simdjson::simdjson_error& e) {
+        if (e.error() != simdjson::INCORRECT_TYPE &&
+            e.error() != simdjson::NUMBER_ERROR) {
+          result = true;
+          break;
+        }
       }
-    }
-    catch (simdjson::simdjson_error& e) {
-      if(e.error() != simdjson::INCORRECT_TYPE && e.error() != simdjson::NUMBER_ERROR) {
-        return false;
-      }
-    }
-    return true;
+    } while (0);
   }
 };
 
