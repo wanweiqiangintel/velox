@@ -100,15 +100,15 @@ TEST_F(SIMDJsonFunctionsTest, jsonArrayContainsBool) {
   EXPECT_EQ(
       json_array_contains<bool>(R"(["hello", "presto", "world"])", false),
       false);
-  EXPECT_EQ(json_array_contains<bool>(R"(1)", true), std::nullopt);
+  EXPECT_EQ(json_array_contains<bool>(R"(1)", true), false);
   EXPECT_EQ(
       json_array_contains<bool>(R"("thefoxjumpedoverthefence")", false),
-      std::nullopt);
-  EXPECT_EQ(json_array_contains<bool>(R"("")", false), std::nullopt);
-  EXPECT_EQ(json_array_contains<bool>(R"(true)", true), std::nullopt);
+      false);
+  EXPECT_EQ(json_array_contains<bool>(R"("")", false), false);
+  EXPECT_EQ(json_array_contains<bool>(R"(true)", true), false);
   EXPECT_EQ(
       json_array_contains<bool>(R"({"k1":[0,1,2], "k2":"v1"})", true),
-      std::nullopt);
+      false);
 
   EXPECT_EQ(json_array_contains<bool>(R"([true, false])", true), true);
   EXPECT_EQ(json_array_contains<bool>(R"([true, true])", false), false);
@@ -160,15 +160,15 @@ TEST_F(SIMDJsonFunctionsTest, jsonArrayContainsLong) {
       false);
   EXPECT_EQ(
       json_array_contains<int64_t>(R"([false, false, false])", 17), false);
-  EXPECT_EQ(json_array_contains<int64_t>(R"(1)", 1), std::nullopt);
+  EXPECT_EQ(json_array_contains<int64_t>(R"(1)", 1), false);
   EXPECT_EQ(
       json_array_contains<int64_t>(R"("thefoxjumpedoverthefence")", 1),
-      std::nullopt);
-  EXPECT_EQ(json_array_contains<int64_t>(R"("")", 1), std::nullopt);
-  EXPECT_EQ(json_array_contains<int64_t>(R"(true)", 1), std::nullopt);
+      false);
+  EXPECT_EQ(json_array_contains<int64_t>(R"("")", 1), false);
+  EXPECT_EQ(json_array_contains<int64_t>(R"(true)", 1), false);
   EXPECT_EQ(
       json_array_contains<int64_t>(R"({"k1":[0,1,2], "k2":"v1"})", 1),
-      std::nullopt);
+      false);
 
   EXPECT_EQ(json_array_contains<int64_t>(R"([1, 2, 3])", 1), true);
   EXPECT_EQ(json_array_contains<int64_t>(R"([1, 2, 3])", 4), false);
@@ -218,15 +218,15 @@ TEST_F(SIMDJsonFunctionsTest, jsonArrayContainsDouble) {
       false);
   EXPECT_EQ(
       json_array_contains<double>(R"([false, false, false])", 2.3), false);
-  EXPECT_EQ(json_array_contains<double>(R"(1)", 2.3), std::nullopt);
+  EXPECT_EQ(json_array_contains<double>(R"(1)", 2.3), false);
   EXPECT_EQ(
       json_array_contains<double>(R"("thefoxjumpedoverthefence")", 2.3),
-      std::nullopt);
-  EXPECT_EQ(json_array_contains<double>(R"("")", 2.3), std::nullopt);
-  EXPECT_EQ(json_array_contains<double>(R"(true)", 2.3), std::nullopt);
+      false);
+  EXPECT_EQ(json_array_contains<double>(R"("")", 2.3), false);
+  EXPECT_EQ(json_array_contains<double>(R"(true)", 2.3), false);
   EXPECT_EQ(
       json_array_contains<double>(R"({"k1":[0,1,2], "k2":"v1"})", 2.3),
-      std::nullopt);
+      false);
 
   EXPECT_EQ(json_array_contains<double>(R"([1.2, 2.3, 3.4])", 2.3), true);
   EXPECT_EQ(json_array_contains<double>(R"([1.2, 2.3, 3.4])", 2.4), false);
@@ -275,15 +275,15 @@ TEST_F(SIMDJsonFunctionsTest, jsonArrayContainsString) {
       json_array_contains<std::string>(R"([1.2, 2.3, 3.4])", "2.3"), false);
   EXPECT_EQ(
       json_array_contains<std::string>(R"([true, false])", R"("true")"), false);
-  EXPECT_EQ(json_array_contains<std::string>(R"(1)", "1"), std::nullopt);
+  EXPECT_EQ(json_array_contains<std::string>(R"(1)", "1"), false);
   EXPECT_EQ(
       json_array_contains<std::string>(R"("thefoxjumpedoverthefence")", "1"),
-      std::nullopt);
-  EXPECT_EQ(json_array_contains<std::string>(R"("")", "1"), std::nullopt);
-  EXPECT_EQ(json_array_contains<std::string>(R"(true)", "1"), std::nullopt);
+      false);
+  EXPECT_EQ(json_array_contains<std::string>(R"("")", "1"), false);
+  EXPECT_EQ(json_array_contains<std::string>(R"(true)", "1"), false);
   EXPECT_EQ(
       json_array_contains<std::string>(R"({"k1":[0,1,2], "k2":"v1"})", "1"),
-      std::nullopt);
+      false);
 
   EXPECT_EQ(
       json_array_contains<std::string>(
@@ -347,13 +347,13 @@ TEST_F(SIMDJsonFunctionsTest, jsonArrayContainsString) {
       std::nullopt);
   EXPECT_EQ(
       json_array_contains<std::string>(R"([""])", std::nullopt), std::nullopt);
-  EXPECT_EQ(json_array_contains<std::string>("", "x"), std::nullopt);
-  EXPECT_EQ(json_array_contains<std::string>(R"(123)", "2.5"), std::nullopt);
-  EXPECT_EQ(json_array_contains<std::string>(R"([)", "8"), std::nullopt);
+  EXPECT_EQ(json_array_contains<std::string>("", "x"), false);
+  EXPECT_EQ(json_array_contains<std::string>(R"(123)", "2.5"), false);
+  EXPECT_EQ(json_array_contains<std::string>(R"([)", "8"), false);
   EXPECT_EQ(
-      json_array_contains<std::string>(R"([1,0,])", "true"), std::nullopt);
+      json_array_contains<std::string>(R"([1,0,])", "true"), false);
   EXPECT_EQ(
-      json_array_contains<std::string>(R"([1,,0])", "true"), std::nullopt);
+      json_array_contains<std::string>(R"([1,,0])", "true"), false);
 }
 
 TEST_F(SIMDJsonFunctionsTest, jsonParse) {
