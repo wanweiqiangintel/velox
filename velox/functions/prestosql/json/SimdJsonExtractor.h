@@ -21,6 +21,7 @@
 
 #include "folly/Range.h"
 #include "folly/dynamic.h"
+#include "simdjson.h"
 
 namespace facebook::velox::functions {
 
@@ -52,6 +53,19 @@ namespace facebook::velox::functions {
  * jsonExtract(json, "$.non_exist_key") = NULL
  * jsonExtract(json, "$.store.fruit[*].type") = "[\"apple\", \"pear\"]"
  */
+struct ParserContext{
+public:
+    explicit ParserContext() noexcept;
+    explicit ParserContext(const char *data, size_t length) noexcept;
+    void parseElement();
+    void parseDocument();
+    simdjson::dom::element jsonEle;
+    simdjson::ondemand::document jsonDoc;
+private:
+    simdjson::padded_string padded_json;
+    simdjson::dom::parser domParser;
+    simdjson::ondemand::parser ondemandParser;
+};
 
 
 std::optional<std::string> SimdJsonExtractString(
