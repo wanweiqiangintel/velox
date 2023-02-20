@@ -21,36 +21,34 @@
 #include "velox/functions/prestosql/types/JsonType.h"
 
 namespace facebook::velox::functions {
-
+template <typename T>
+struct SIMDJsonArrayContainsFunction {
+  VELOX_DEFINE_FUNCTION_TYPES(T);
   template <typename TInput>
   FOLLY_ALWAYS_INLINE void 
   call(bool& result, const arg_type<Json>& json, const TInput& value) {
 
     std::string jsonData(json);
-    simdjson::ondemand::parser parser;
-    simdjson::ondemand::document jsonObj;
-    simdjson::padded_string padded_json(jsonData.data(), jsonData.length());
+    ParserContext ctx(jsonData.data(), jsonData.length());
     std::string jsonpath = "";
     result = false;
 
     do {
       try {
-        jsonObj = parser.iterate(padded_json);
+        ctx.parseDocument();
       } catch (simdjson::simdjson_error& e) {
         printf(
             "error: Failed to parse json as document. error :%s\n",
             simdjson::error_message(e.error()));
-        result = false;
         break;
       }
 
-      if (jsonObj.type() != simdjson::ondemand::json_type::array) {
-        result = false;
+      if (ctx.jsonDoc.type() != simdjson::ondemand::json_type::array) {
         break;
       }
 
       try {
-        for (auto&& v : jsonObj) {
+        for (auto&& v : ctx.jsonDoc) {
           if constexpr (std::is_same_v<TInput, bool>) {
             if (v.type() == simdjson::ondemand::json_type::boolean &&
                 v.get_bool() == value) {
@@ -90,8 +88,6 @@ namespace facebook::velox::functions {
       } catch (simdjson::simdjson_error& e) {
         if (e.error() != simdjson::INCORRECT_TYPE &&
             e.error() != simdjson::NUMBER_ERROR) {
-          result = true;
-          break;
         }
       }
     } while (0);
@@ -107,22 +103,20 @@ struct SIMDJsonParseFunction {
       const arg_type<Varchar>& json) {
 
     std::string jsonData(json);
-
-    simdjson::dom::parser parser;
-    simdjson::dom::element jsonDoc;
-    simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
+    ParserContext ctx(jsonData.data(), jsonData.length());
+    bool retVal = false;
 
     try{
-      jsonDoc = parser.parse(padded_json);
-      std::string_view rlt_tmp = simdjson::to_string(jsonDoc);
+      ctx.parseElement();
+      std::string_view rlt_tmp = simdjson::to_string(ctx.jsonEle);
       std::string rlt(rlt_tmp);
       UDFOutputString::assign(result, rlt);
-      return true;
+      retVal = true;
     } catch(simdjson::simdjson_error& e)
     {
       VELOX_USER_FAIL("Cannot convert '{}' to JSON", jsonData);
-      return false;
     }
+    return retVal;
   }
 };
 
@@ -137,15 +131,15 @@ struct SIMDJsonExtractScalarFunction {
 
     std::string jsonData(json);
     std::string jsonPathStr = jsonPath;
+    bool retVal = false;
 
     auto extractResult = SimdJsonExtractScalar(jsonData, jsonPathStr);
 
     if (extractResult.has_value()) {
       UDFOutputString::assign(result, extractResult.value());
-      return true;
-    } else {
-      return false;
+      retVal = true;
     }
+    return retVal;
   }
 };
 
@@ -157,13 +151,11 @@ struct SIMDJsonValidFunction {
       int64_t& result,
       const arg_type<Varchar>& json) {
     std::string jsonData(json);
-    simdjson::dom::parser parser;
-    simdjson::dom::element jsonObj;
-    simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
+    ParserContext ctx(jsonData.data(), jsonData.length());
     std::string jsonpath = "";
     
     try {
-      jsonObj = parser.parse(padded_json);
+      ctx.parseElement();
       result = 1;
     } catch(simdjson::simdjson_error& e)
     {
@@ -179,34 +171,36 @@ struct SIMDJsonArrayLengthFunction {
 
   FOLLY_ALWAYS_INLINE bool call(int64_t& result, const arg_type<Json>& json) {
     std::string jsonData(json);
-    simdjson::ondemand::parser parser;
-    simdjson::ondemand::document jsonObj;
-    simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
+    
+    ParserContext ctx(jsonData.data(), jsonData.length());
     std::string jsonpath = "";
-    
-    try {
-      jsonObj = parser.iterate(padded_json);
-    }
-    catch(simdjson::simdjson_error& e) {
-      printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
-      return false;
-    }
-    
-    if (jsonObj.type() != simdjson::ondemand::json_type::array) {
-      return false;
-    }
-
-    result = 0;
-    try{
-      for (auto &&v : jsonObj) {
-        result++;
+    bool retVal = false;
+    do {
+      try {
+        ctx.parseDocument();
       }
-      return true;
-    }
-    catch (simdjson::simdjson_error& e) {
-      printf("error: Failed to count array length. error :%s\n",simdjson::error_message(e.error()));
-    }
-    return false;
+      catch(simdjson::simdjson_error& e) {
+        printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
+        break;
+      }
+
+      if (ctx.jsonDoc.type() != simdjson::ondemand::json_type::array) {
+        break;
+      }
+
+      result = 0;
+      try{
+        for (auto &&v : ctx.jsonDoc) {
+          result++;
+        }
+        retVal = true;
+        break;
+      }
+      catch (simdjson::simdjson_error& e) {
+        printf("error: Failed to count array length. error :%s\n",simdjson::error_message(e.error()));
+      }
+    } while(0);
+    return retVal;
   }
 };
 
@@ -218,52 +212,42 @@ struct SIMDJsonKeysFunction {
       out_type<Varchar>& result,
       const arg_type<Json>& json) {
     std::string jsonData(json);
-    simdjson::ondemand::parser parser;
-    simdjson::ondemand::document jsonObj;
-    simdjson::padded_string padded_json(jsonData.data(),jsonData.length());
-    
-    try {
-      jsonObj = parser.iterate(padded_json);
-    }
-    catch(simdjson::simdjson_error& e) {
-      printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
-      return false;
-    }
-    
-    if (jsonObj.type() != simdjson::ondemand::json_type::object) {
-      return false;
-    }
+    ParserContext ctx(jsonData.data(), jsonData.length());
+    bool retVal = false;
 
-    std::string rlt = "[";
-    int count = 0;
-    int objCnt = jsonObj.count_fields();
-    try{
-      for (auto &&field : jsonObj.get_object()) {
-        std::string_view tmp = field.unescaped_key();
-        rlt += "\""+std::string(tmp)+"\"";
-        if(++count != objCnt) {
-          rlt += ",";
-        }
+    do {
+      try {
+        ctx.parseDocument();
       }
-      rlt += "]";
-      UDFOutputString::assign(result, rlt);
-      return true;
-    }
-    catch (simdjson::simdjson_error& e) {
-      printf("error: Failed to find json key. error :%s\n",simdjson::error_message(e.error()));
-    }
-    return false;
+      catch(simdjson::simdjson_error& e) {
+        printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
+        break;
+      }
+
+      if (ctx.jsonDoc.type() != simdjson::ondemand::json_type::object) {
+        break;
+      }
+
+      std::string rlt = "[";
+      int count = 0;
+      int objCnt = ctx.jsonDoc.count_fields();
+      try{
+        for (auto &&field : ctx.jsonDoc.get_object()) {
+          std::string_view tmp = field.unescaped_key();
+          rlt += "\""+std::string(tmp)+"\"";
+          if(++count != objCnt) {
+            rlt += ",";
+          }
+        }
+        rlt += "]";
+        UDFOutputString::assign(result, rlt);
+        retVal = true;
+      }
+      catch (simdjson::simdjson_error& e) {
+        printf("error: Failed to find json key. error :%s\n",simdjson::error_message(e.error()));
+      }
+    } while(0);
+    return retVal;
   }
 };
-
-template <typename T>
-struct SIMDJsonLengthFunction {
-  VELOX_DEFINE_FUNCTION_TYPES(T);
-
-  FOLLY_ALWAYS_INLINE bool call(int64_t& result, const arg_type<Json>& json) {
-    // TODO: implement Json Length function with simdjson.
-    return false;
-  }
-};
-
 } // namespace facebook::velox::functions
