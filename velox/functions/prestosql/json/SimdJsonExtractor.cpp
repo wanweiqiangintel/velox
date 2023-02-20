@@ -117,13 +117,11 @@ bool SimdJsonExtractor::isValueBasicType(simdjson::simdjson_result<simdjson::ond
 std::optional<std::string> SimdJsonExtractor::extractScalar(
     const std::string& json) {
 
-  simdjson::ondemand::parser parser;
-  simdjson::ondemand::document jsonObj;
-  simdjson::padded_string padded_json(json.data(),json.length());
+  ParserContext ctx(json.data(), json.length());
   std::string jsonpath = "";
 
   try{
-    jsonObj = parser.iterate(padded_json);
+    ctx.parseDocument();
   } catch(simdjson::simdjson_error& e)
   {
     printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
@@ -137,11 +135,11 @@ std::optional<std::string> SimdJsonExtractor::extractScalar(
   std::string_view rlt_tmp;
   if(jsonpath == "")
   {
-    if(isDocBasicType(jsonObj)) {
-      rlt_tmp = simdjson::to_json_string(jsonObj);
+    if(isDocBasicType(ctx.jsonDoc)) {
+      rlt_tmp = simdjson::to_json_string(ctx.jsonDoc);
     }
-    else if(jsonObj.type() == simdjson::ondemand::json_type::string){
-      rlt_tmp = jsonObj.get_string();
+    else if(ctx.jsonDoc.type() == simdjson::ondemand::json_type::string){
+      rlt_tmp = ctx.jsonDoc.get_string();
     }
     else {
       return std::nullopt;
@@ -149,7 +147,7 @@ std::optional<std::string> SimdJsonExtractor::extractScalar(
   }
   else {
     try{
-      simdjson::simdjson_result<simdjson::ondemand::value> rlt_value = jsonObj.at_pointer(jsonpath);
+      simdjson::simdjson_result<simdjson::ondemand::value> rlt_value = ctx.jsonDoc.at_pointer(jsonpath);
       if(isValueBasicType(rlt_value)) {
         rlt_tmp = simdjson::to_json_string(rlt_value);
       }
@@ -171,12 +169,10 @@ std::optional<std::string> SimdJsonExtractor::extractScalar(
 
 std::optional<std::string> SimdJsonExtractor::extract(
     const std::string& json) {
-  simdjson::dom::parser parser;
-  simdjson::dom::element jsonDoc;
-  simdjson::padded_string padded_json(json.data(),json.length());
+  ParserContext ctx(json.data(), json.length());
 
   try{
-    jsonDoc = parser.parse(padded_json);
+    ctx.parseElement();
   } catch(simdjson::simdjson_error& e)
   {
     printf("error: Failed to parse json as document. error :%s\n", simdjson::error_message(e.error()));
@@ -184,11 +180,11 @@ std::optional<std::string> SimdJsonExtractor::extract(
   }
 
   std::optional<std::string> rlt;
-  if(jsonDoc.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::dom::element_type::ARRAY) {
-    rlt = extractFromArray(0, jsonDoc);
+  if(ctx.jsonEle.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::dom::element_type::ARRAY) {
+    rlt = extractFromArray(0, ctx.jsonEle);
   }
-  else if(jsonDoc.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::dom::element_type::OBJECT) {
-    rlt = extractFromObject(0, jsonDoc);
+  else if(ctx.jsonEle.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::dom::element_type::OBJECT) {
+    rlt = extractFromObject(0, ctx.jsonEle);
   }
   else{
     return std::nullopt;
@@ -295,12 +291,10 @@ std::optional<std::string> SimdJsonExtractor::extractFromArray(
 
 std::optional<std::string> SimdJsonExtractor::extractOndemand(
     const std::string& json) {
-  simdjson::ondemand::parser parser;
-  simdjson::ondemand::document jsonDoc;
-  simdjson::padded_string padded_json(json.data(),json.length());
+  ParserContext ctx(json.data(), json.length());
 
   try{
-    jsonDoc = parser.iterate(padded_json);
+    ctx.parseDocument();
   } catch(simdjson::simdjson_error& e)
   {
     printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
@@ -308,11 +302,11 @@ std::optional<std::string> SimdJsonExtractor::extractOndemand(
   }
 
   std::optional<std::string> rlt;
-  if(jsonDoc.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::ondemand::json_type::array) {
-    rlt = extractFromArrayOndemand(0, jsonDoc);
+  if(ctx.jsonDoc.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::ondemand::json_type::array) {
+    rlt = extractFromArrayOndemand(0, ctx.jsonDoc);
   }
-  else if(jsonDoc.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::ondemand::json_type::object) {
-    rlt = extractFromObjectOndemand(0, jsonDoc);
+  else if(ctx.jsonDoc.type() == simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::ondemand::json_type::object) {
+    rlt = extractFromObjectOndemand(0, ctx.jsonDoc);
   }
   else{
     return std::nullopt;
@@ -323,13 +317,11 @@ std::optional<std::string> SimdJsonExtractor::extractOndemand(
 std::optional<std::string> SimdJsonExtractor::extractKeysOndemand(
     const std::string& json) {
   
-  simdjson::ondemand::parser parser;
-  simdjson::ondemand::document jsonObj;
-  simdjson::padded_string padded_json(json.data(),json.length());
+  ParserContext ctx(json.data(), json.length());
   std::string jsonpath = "";
 
   try {
-    jsonObj = parser.iterate(padded_json);
+    ctx.parseDocument();
   }
   catch(simdjson::simdjson_error& e) {
     printf("error: Failed to parse json as document. error :%s\n",simdjson::error_message(e.error()));
@@ -340,10 +332,9 @@ std::optional<std::string> SimdJsonExtractor::extractKeysOndemand(
   }
 
   try{
-    simdjson::simdjson_result<simdjson::ondemand::value> rlt_value = jsonObj.at_pointer(jsonpath);
+    simdjson::simdjson_result<simdjson::ondemand::value> rlt_value = ctx.jsonDoc.at_pointer(jsonpath);
     if(rlt_value.type() != simdjson::ondemand::json_type::object) {
       std::string_view tmp = simdjson::to_json_string(rlt_value);
-      //VELOX_USER_FAIL("value is invalid:{}", std::string(tmp));
       return std::nullopt;
     }
 
@@ -534,6 +525,17 @@ std::optional<std::string> SimdJsonKeysWithJsonPathOndemand(
     printf("extractKeysOndemand json failed, error: %s",simdjson::error_message(e.error()));
   }
   return std::nullopt;
+}
+
+ParserContext::ParserContext() noexcept = default;
+ParserContext::ParserContext(const char *data, size_t length) noexcept 
+    : padded_json(data, length){
+}
+void ParserContext::parseElement() {
+    jsonEle = domParser.parse(padded_json);
+}
+void ParserContext::parseDocument() {
+    jsonDoc = ondemandParser.iterate(padded_json);
 }
 
 std::optional<std::string> SimdJsonExtractString(
