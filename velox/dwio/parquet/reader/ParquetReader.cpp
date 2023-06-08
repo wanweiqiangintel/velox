@@ -22,6 +22,12 @@
 #include "velox/dwio/parquet/thrift/ThriftTransport.h"
 
 #include <folly/String.h>
+DEFINE_int32(
+    parquet_prefetch_rowgroups,
+    2,
+    "Number of next row groups to "
+    "prefetch. 1 means prefetch the next row group before decoding "
+    "the current one");
 
 namespace facebook::velox::parquet {
 
@@ -462,12 +468,23 @@ void ReaderBase::scheduleRowGroups(
     reader.enqueueRowGroup(thisGroup, *newInput);
     newInput->load(dwio::common::LogType::STRIPE);
     inputs_[thisGroup] = std::move(newInput);
+    reader.prefetchRowGroup(thisGroup);
   }
-  if (nextGroup) {
-    auto newInput = input_->clone();
-    reader.enqueueRowGroup(nextGroup, *newInput);
-    newInput->load(dwio::common::LogType::STRIPE);
-    inputs_[nextGroup] = std::move(newInput);
+  for (auto counter = 0; counter < FLAGS_parquet_prefetch_rowgroups;
+       ++counter) {
+    if (nextGroup) {
+      if (inputs_.count(nextGroup) != 0) {
+        auto newInput = input_->clone();
+        reader.enqueueRowGroup(nextGroup, *newInput);
+        newInput->load(dwio::common::LogType::STRIPE);
+        inputs_[nextGroup] = std::move(newInput);
+        reader.prefetchRowGroup(nextGroup);
+      }
+    } else {
+      break;
+    }
+    nextGroup =
+        nextGroup + 1 < rowGroupIds.size() ? rowGroupIds[nextGroup + 1] : 0;
   }
   if (currentGroup > 1) {
     inputs_.erase(rowGroupIds[currentGroup - 1]);

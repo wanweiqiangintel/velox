@@ -224,10 +224,10 @@ BENCHMARK(q8) {
   benchmark.run(planContext);
 }
 
-BENCHMARK(q9) {
-  const auto planContext = queryBuilder->getQueryPlan(9);
-  benchmark.run(planContext);
-}
+// BENCHMARK(q9) {
+//   const auto planContext = queryBuilder->getQueryPlan(9);
+//   benchmark.run(planContext);
+// }
 
 BENCHMARK(q10) {
   const auto planContext = queryBuilder->getQueryPlan(10);
@@ -254,10 +254,10 @@ BENCHMARK(q15) {
   benchmark.run(planContext);
 }
 
-BENCHMARK(q16) {
-  const auto planContext = queryBuilder->getQueryPlan(16);
-  benchmark.run(planContext);
-}
+// BENCHMARK(q16) {
+//   const auto planContext = queryBuilder->getQueryPlan(16);
+//   benchmark.run(planContext);
+// }
 
 BENCHMARK(q17) {
   const auto planContext = queryBuilder->getQueryPlan(17);
@@ -279,10 +279,10 @@ BENCHMARK(q20) {
   benchmark.run(planContext);
 }
 
-BENCHMARK(q21) {
-  const auto planContext = queryBuilder->getQueryPlan(21);
-  benchmark.run(planContext);
-}
+// BENCHMARK(q21) {
+//   const auto planContext = queryBuilder->getQueryPlan(21);
+//   benchmark.run(planContext);
+// }
 
 BENCHMARK(q22) {
   const auto planContext = queryBuilder->getQueryPlan(22);
