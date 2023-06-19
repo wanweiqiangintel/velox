@@ -132,18 +132,19 @@ struct SIMDJsonArrayLengthFunction {
     bool result = false;
 
     try {
-      ctx.parseDocument();
+      ctx.parseElement();
     } catch (simdjson::simdjson_error& e) {
       return result;
     }
 
-    if (ctx.jsonDoc.type() != simdjson::ondemand::json_type::array) {
+    if (ctx.jsonEle.type() !=
+        simdjson::SIMDJSON_BUILTIN_IMPLEMENTATION::dom::element_type::ARRAY) {
       return result;
     }
 
     len = 0;
     try {
-      for (auto&& v : ctx.jsonDoc) {
+      for (auto&& v : ctx.jsonEle) {
         len++;
       }
       result = true;
