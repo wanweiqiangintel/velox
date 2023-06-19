@@ -107,6 +107,8 @@ std::string_view toTableName(Table table) {
       return "nation";
     case Table::TBL_REGION:
       return "region";
+    default:
+      break;
   }
   return ""; // make gcc happy.
 }
@@ -150,6 +152,8 @@ size_t getRowCount(Table table, double scaleFactor) {
       return 5;
     case Table::TBL_LINEITEM:
       return getLineItemRowCount(scaleFactor);
+    default:
+      break;
   }
   return 0; // make gcc happy.
 }
@@ -433,6 +437,8 @@ RowTypePtr getTableSchema(Table table) {
           });
       return type;
     }
+    default:
+      break;
   }
   return nullptr; // make gcc happy.
 }
