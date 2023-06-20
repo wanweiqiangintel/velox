@@ -151,7 +151,6 @@ uint32_t Qplcodec::DecompressAsync(int64_t input_length, const uint8_t* input,
     job->available_in = input_length;
     job->available_out = output_buffer_length;
     job->flags = QPL_FLAG_FIRST | QPL_FLAG_LAST;
-    job->numa_id = 1;
 
     //decompression
     qpl_status status = qpl_submit_job(job);
