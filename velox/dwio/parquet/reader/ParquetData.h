@@ -191,7 +191,7 @@ class ParquetData : public dwio::common::FormatData {
 
   bool hasDictionary() const {
     if (qplReader_ != nullptr) {
-      qplReader_->isDictionary();
+      return qplReader_->isDictionary();
     } else {
       return reader_->isDictionary();
     }
