@@ -46,6 +46,8 @@ RowVectorPtr getTpchData(
       return velox::tpch::genTpchNation(pool, maxRows, offset, scaleFactor);
     case Table::TBL_REGION:
       return velox::tpch::genTpchRegion(pool, maxRows, offset, scaleFactor);
+    default:
+      break;
   }
   return nullptr;
 }
