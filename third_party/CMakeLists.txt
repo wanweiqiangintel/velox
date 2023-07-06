@@ -108,8 +108,8 @@ if(VELOX_ENABLE_QPL)
     -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
     -DEFFICIENT_WAIT=OFF
     -DQPL_BUILD_TESTS=0
-    -DCMAKE_C_COMPILER=/home/zhaoyaqi/program/gcc-9.4.0/_build/bin/gcc
-    -DCMAKE_CXX_COMPILER=/home/zhaoyaqi/program/gcc-9.4.0/_build/bin/g++)
+    -DCMAKE_C_COMPILER=gcc
+    -DCMAKE_CXX_COMPILER=g++)
 
   set(QPL_PATCH_COMMAND
       "sed" "-i" "20,27d"
@@ -128,7 +128,9 @@ if(VELOX_ENABLE_QPL)
   add_library(qpl::qpl STATIC IMPORTED GLOBAL)
   set(QPL_LIBRARIES ${QPL_STATIC_LIB})
   set(QPL_INCLUDE_DIRS "${QPL_PREFIX}/include")
-  target_link_libraries(qpl::qpl INTERFACE /usr/lib64/libaccel-config.so)
+  target_link_libraries(qpl::qpl INTERFACE 
+	                /usr/lib64/libaccel-config.so
+			/usr/local/lib/libusdm_drv_s.so)
   set_target_properties(qpl::qpl
                         PROPERTIES IMPORTED_LOCATION ${QPL_LIBRARIES}
                                    INTERFACE_INCLUDE_DIRECTORIES ${QPL_INCLUDE_DIRS})

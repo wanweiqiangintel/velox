@@ -10,11 +10,11 @@ class Qplcodec{
 public:
 
   Qplcodec(qpl_path_t execute_path,qpl_compression_levels compression_level): 
-    execute_path_(execute_path),compression_level_(compression_level),job_(NULL),idx_(0){};
+    execute_path_(execute_path),compression_level_(compression_level),job_del_(NULL),idx_(0){};
   ~Qplcodec(){
     //Freejob();
   }
-  int Getjob();
+  //int Getjob();
   //bool Freejob();
   bool Decompress(int64_t input_length, const uint8_t* input,
                              int64_t output_buffer_length, uint8_t* output);
@@ -26,7 +26,7 @@ public:
 private:
   qpl_path_t execute_path_;
   qpl_compression_levels compression_level_;
-  qpl_job *job_;
+  qpl_job *job_del_;
   int idx_;
   
 };
