@@ -1236,7 +1236,7 @@ void QplPageReader::waitQplJob(uint32_t job_id) {
   } 
   // std::cout << "check_time: " << check_time << std::endl;
   
-  qpl_fini_job(job);
+  qpl_wait_job(job);
   qpl_job_pool.ReleaseJob(job_id);
   VELOX_DCHECK(status == QPL_STS_OK, "Check of QPL Job failed, status: {}, job_id: {}, sys_id: {}", status, job_id);
 }
@@ -1245,13 +1245,13 @@ QplPageReader::~QplPageReader() {
     dwio::common::QplJobHWPool& qpl_job_pool = dwio::common::QplJobHWPool::GetInstance();
     if (dict_qpl_job_id > 0) {
         qpl_job* job = qpl_job_pool.GetJobById(dict_qpl_job_id);
-        qpl_fini_job(job);
+        qpl_wait_job(job);
         qpl_job_pool.ReleaseJob(dict_qpl_job_id);
         dict_qpl_job_id = 0;
     }
     if (data_qpl_job_id > 0) {
         qpl_job* job = qpl_job_pool.GetJobById(data_qpl_job_id);
-        qpl_fini_job(job);
+        qpl_wait_job(job);
         qpl_job_pool.ReleaseJob(data_qpl_job_id);
         data_qpl_job_id = 0;        
     }

@@ -17,6 +17,7 @@ std::atomic<bool> job_status[job_size];
 static bool initialized_job =false;
 static int start=0;
 std::mutex mtx;
+/*
 bool Initjobs(qpl_path_t execution_path){
   //std::lock_guard<std::mutex> lg(mtx);
   mtx.lock();
@@ -72,9 +73,16 @@ int Qplcodec::Getjob(){
   job_=job_pool[index];
   return index;
 }
-
+*/
 bool Qplcodec::Compress(int64_t input_length, const uint8_t* input,
                              int64_t output_buffer_length, uint8_t* output){
+    dwio::common::QplJobHWPool& qpl_job_pool = dwio::common::QplJobHWPool::GetInstance();
+    uint32_t job_id = 0;
+    qpl_job* job_ = qpl_job_pool.AcquireDeflateJob(job_id);
+    VELOX_DCHECK(job_ != nullptr, "Acquire QPL Deflate Job failed.");
+    if (job_ == nullptr) {
+      throw std::runtime_error("Acquire QPL Deflate Job failed. ");
+    }
     job_->op=qpl_op_compress;
     job_->level=(qpl_compression_levels)compression_level_;
     job_->next_in_ptr=const_cast<uint8_t*>(input);
@@ -106,7 +114,13 @@ bool Qplcodec::Decompress(int64_t input_length, const uint8_t* input,
     }
 
     // Reset the stream for this block
-    int job_id=Getjob();
+    dwio::common::QplJobHWPool& qpl_job_pool = dwio::common::QplJobHWPool::GetInstance();
+    uint32_t job_id = 0;
+    qpl_job* job_ = qpl_job_pool.AcquireDeflateJob(job_id);
+    VELOX_DCHECK(job_ != nullptr, "Acquire QPL Deflate Job failed.");
+    if (job_ == nullptr) {
+      throw std::runtime_error("Acquire QPL Deflate Job failed. ");
+    }
 
     job_->op=qpl_op_decompress;
     job_->next_in_ptr=const_cast<uint8_t*>(input);
