@@ -1263,7 +1263,7 @@ void QplPageReader::waitQplJob(uint32_t job_id) {
   } 
   // std::cout << "check_time: " << check_time << std::endl;
   
-  qpl_wait_job(job);
+  //qpl_wait_job(job);
   qpl_job_pool.ReleaseJob(job_id);
   VELOX_DCHECK(status == QPL_STS_OK, "Check of QPL Job failed, status: {}, job_id: {}, sys_id: {}", status, job_id);
 }
