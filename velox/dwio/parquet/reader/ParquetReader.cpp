@@ -470,7 +470,7 @@ void ReaderBase::scheduleRowGroups(
     reader.enqueueRowGroup(nextGroup, *newInput);
     newInput->load(dwio::common::LogType::STRIPE);
     inputs_[nextGroup] = std::move(newInput);
-  //  reader.prefetchRowGroup(nextGroup);
+   reader.prefetchRowGroup(nextGroup);
   }
   if (currentGroup > 1) {
     inputs_.erase(rowGroupIds[currentGroup - 1]);

@@ -213,7 +213,7 @@ class ParquetData : public dwio::common::FormatData {
   // Streams for this column in each of 'rowGroups_'. Will be created on or
   // ahead of first use, not at construction.
   std::vector<std::unique_ptr<dwio::common::SeekableInputStream>> streams_;
-  // std::vector<std::unique_ptr<QplPageReader>> pageReaders_;
+  std::vector<std::unique_ptr<QplPageReader>> pageReaders_;
 
   const uint32_t maxDefine_;
   const uint32_t maxRepeat_;
